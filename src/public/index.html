@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-base-200 min-h-screen">
+    <!-- Header -->
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl">📝 Todo App</a>
+        </div>
+        <div class="flex-none">
+            <label class="swap swap-rotate">
+                <input type="checkbox" id="themeToggle" />
+                <svg class="swap-off fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/></svg>
+                <svg class="swap-on fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z"/></svg>
+            </label>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Add Todo Form -->
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title text-2xl mb-4">Create New Todo</h2>
+                <form id="createForm" class="space-y-4">
+                    <div>
+                        <input 
+                            type="text" 
+                            id="newTitle" 
+                            placeholder="Title" 
+                            class="input input-bordered w-full"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <textarea 
+                            id="newDescription" 
+                            placeholder="Description" 
+                            class="textarea textarea-bordered w-full h-24"
+                            required
+                        ></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">
+                        Add Todo
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Todos List -->
+        <div class="mb-4">
+            <h2 class="text-2xl font-bold mb-4">Your Todos</h2>
+            <div id="loadingState" class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-lg"></span>
+            </div>
+            <div id="emptyState" class="alert hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>No todos yet. Create your first one above!</span>
+            </div>
+            <div id="todosList" class="space-y-4"></div>
+            
+            <!-- Pagination Controls -->
+            <div id="paginationContainer" class="flex justify-center mt-8"></div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <dialog id="editModal" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg mb-4">Edit Todo</h3>
+            <form id="editForm" class="space-y-4">
+                <input type="hidden" id="editId" />
+                <div>
+                    <input 
+                        type="text" 
+                        id="editTitle" 
+                        placeholder="Title" 
+                        class="input input-bordered w-full"
+                        required
+                    />
+                </div>
+                <div>
+                    <textarea 
+                        id="editDescription" 
+                        placeholder="Description" 
+                        class="textarea textarea-bordered w-full h-24"
+                        required
+                    ></textarea>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input 
+                        type="checkbox" 
+                        id="editCompleted" 
+                        class="checkbox checkbox-primary"
+                    />
+                    <label for="editCompleted" class="label-text">Mark as completed</label>
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn" onclick="editModal.close()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast toast-top toast-end"></div>
+
+    <script>
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.querySelector('html');
+        
+        themeToggle.addEventListener('change', (e) => {
+            localStorage.setItem('todoapp-theme', e.target.checked ? 'dark' : 'light');
+            html.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
+        });
+
+        // API base URL
+        const API_URL = '/todos';
+        
+        // Pagination state
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} shadow-lg`;
+            toast.innerHTML = `<span>${message}</span>`;
+            document.getElementById('toastContainer').appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Fetch and render todos
+        async function fetchTodos(page = currentPage) {
+            try {
+                const response = await fetch(`${API_URL}?page=${page}&limit=${itemsPerPage}`);
+                const result = await response.json();
+                currentPage = page;
+                renderTodos(result.data);
+                renderPagination(result.pagination);
+            } catch (error) {
+                showToast('Failed to fetch todos', 'error');
+                console.error('Error fetching todos:', error);
+            }
+        }
+
+        // Render todos
+        function renderTodos(todos) {
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const todosList = document.getElementById('todosList');
+            
+            loadingState.classList.add('hidden');
+            
+            if (todos.length === 0) {
+                emptyState.classList.remove('hidden');
+                todosList.innerHTML = '';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            todosList.innerHTML = todos.map(todo => `
+                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="card-body">
+                        <div class="flex items-start gap-3">
+                            <input 
+                                type="checkbox" 
+                                ${todo.completed ? 'checked' : ''} 
+                                onchange="toggleComplete('${todo.id}', this.checked)"
+                                class="checkbox checkbox-primary mt-1"
+                            />
+                            <div class="flex-1">
+                                <h3 class="card-title ${todo.completed ? 'line-through opacity-60' : ''}">${escapeHtml(todo.title)}</h3>
+                                <p class="text-base-content/70 ${todo.completed ? 'line-through opacity-50' : ''}">${escapeHtml(todo.description)}</p>
+                            </div>
+                        </div>
+                        <div class="card-actions justify-end mt-4">
+                            <button onclick="openEditModal('${todo.id}', '${escapeHtml(todo.title)}', '${escapeHtml(todo.description)}', ${todo.completed})" 
+                                    class="btn btn-sm btn-outline btn-primary">
+                                Edit
+                            </button>
+                            <button onclick="deleteTodo('${todo.id}')" 
+                                    class="btn btn-sm btn-outline btn-error">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Render pagination controls
+        function renderPagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            
+            if (pagination.totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const { page, totalPages, hasPrev, hasNext } = pagination;
+            
+            let paginationHTML = '<div class="join">';
+            
+            // Previous button
+            paginationHTML += `
+                <button 
+                    class="join-item btn ${!hasPrev ? 'btn-disabled' : ''}"
+                    ${hasPrev ? `onclick="fetchTodos(${page - 1})"` : 'disabled'}
+                >
+                    «
+                </button>
+            `;
+            
+            // Page numbers
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            
+            // Adjust start if we're near the end
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // First page and ellipsis
+            if (startPage > 1) {
+                paginationHTML += `
+                    <button class="join-item btn" onclick="fetchTodos(1)">1</button>
+                `;
+                if (startPage > 2) {
+                    paginationHTML += `<button class="join-item btn btn-disabled">...</button>`;
+                }
+            }
+            
+            // Page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                paginationHTML += `
+                    <button 
+                        class="join-item btn ${i === page ? 'btn-active' : ''}"
+                        onclick="fetchTodos(${i})"
+                    >
+                        ${i}
+                    </button>
+                `;
+            }
+            
+            // Last page and ellipsis
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `<button class="join-item btn btn-disabled">...</button>`;
+                }
+                paginationHTML += `
+                    <button class="join-item btn" onclick="fetchTodos(${totalPages})">${totalPages}</button>
+                `;
+            }
+            
+            // Next button
+            paginationHTML += `
+                <button 
+                    class="join-item btn ${!hasNext ? 'btn-disabled' : ''}"
+                    ${hasNext ? `onclick="fetchTodos(${page + 1})"` : 'disabled'}
+                >
+                    »
+                </button>
+            `;
+            
+            paginationHTML += '</div>';
+            container.innerHTML = paginationHTML;
+        }
+
+        // Toggle complete status
+        async function toggleComplete(id, completed) {
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ completed })
+                });
+                
+                if (response.ok) {
+                    showToast(completed ? 'Todo completed! 🎉' : 'Todo reopened');
+                    fetchTodos();
+                } else {
+                    showToast('Failed to update todo', 'error');
+                    fetchTodos(); // Refresh to revert checkbox
+                }
+            } catch (error) {
+                showToast('Failed to update todo', 'error');
+                console.error('Error updating todo:', error);
+                fetchTodos(); // Refresh to revert checkbox
+            }
+        }
+
+        // Create todo
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('newTitle').value;
+            const description = document.getElementById('newDescription').value;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description })
+                });
+                
+                if (response.ok) {
+                    showToast('Todo created successfully!');
+                    document.getElementById('createForm').reset();
+                    fetchTodos(1); // Go to first page after creating
+                } else {
+                    showToast('Failed to create todo', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to create todo', 'error');
+                console.error('Error creating todo:', error);
+            }
+        });
+
+        // Open edit modal
+        function openEditModal(id, title, description, completed) {
+            document.getElementById('editId').value = id;
+            document.getElementById('editTitle').value = title;
+            document.getElementById('editDescription').value = description;
+            document.getElementById('editCompleted').checked = completed;
+            editModal.showModal();
+        }
+
+        // Update todo
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('editId').value;
+            const title = document.getElementById('editTitle').value;
+            const description = document.getElementById('editDescription').value;
+            const completed = document.getElementById('editCompleted').checked;
+            
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, completed })
+                });
+                
+                if (response.ok) {
+                    showToast('Todo updated successfully!');
+                    editModal.close();
+                    fetchTodos();
+                } else {
+                    showToast('Failed to update todo', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to update todo', 'error');
+                console.error('Error updating todo:', error);
+            }
+        });
+
+        // Delete todo
+        async function deleteTodo(id) {
+            if (!confirm('Are you sure you want to delete this todo?')) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showToast('Todo deleted successfully!');
+                    fetchTodos();
+                } else {
+                    showToast('Failed to delete todo', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete todo', 'error');
+                console.error('Error deleting todo:', error);
+            }
+        }
+
+        // Initial load
+        const savedTheme = localStorage.getItem('todoapp-theme');
+        if (savedTheme) {
+            html.setAttribute('data-theme', savedTheme);
+            themeToggle.checked = savedTheme === 'dark';
+        }
+        fetchTodos();
+    </script>
+</body>
+</html>
+

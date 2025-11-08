@@ -1,0 +1,45 @@
+{
+  "name": "my-erect-app",
+  "version": "1.0.0",
+  "description": "A modern full-stack todo app with ReactServe, Drizzle ORM, SQLite, and DaisyUI. Features pagination, dark mode, and complete CRUD operations.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "bun build src/index.tsx --outdir dist --target bun",
+    "dev": "bun --watch src/index.tsx",
+    "start": "bun src/index.tsx",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "bun scripts/seed-todos.ts"
+  },
+  "keywords": [
+    "react-serve",
+    "todo-app",
+    "api",
+    "backend",
+    "drizzle-orm",
+    "sqlite",
+    "daisyui",
+    "pagination",
+    "crud",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@libsql/client": "^0.15.15",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.44.7",
+    "react": "^19.1.1",
+    "react-serve-js": "^0.7.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19.1.10",
+    "drizzle-kit": "^0.31.6",
+    "typescript": "^5.0.0"
+  },
+  "trustedDependencies": [
+    "@libsql/client"
+  ]
+}
