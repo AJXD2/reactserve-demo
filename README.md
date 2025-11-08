@@ -1,121 +1,70 @@
-# 📝 Todo App with ReactServe
+# ReactServe Todo Demo
 
-A modern, full-stack todo application built with **ReactServe** (JSX for APIs), **Drizzle ORM**, **SQLite**, and **DaisyUI**. Features a beautiful responsive UI with dark mode, pagination, and complete CRUD operations.
+Just another todo app but this one uses ReactServe which lets you write APIs with JSX. Pretty neat.
 
-## ✨ Features
+## What it does
 
-- ✅ **Full CRUD operations** - Create, read, update, and delete todos
-- 📄 **Pagination** - Navigate through large lists of todos efficiently
-- ✔️ **Completed state** - Mark todos as complete/incomplete with visual feedback
-- 🌓 **Dark/Light mode** - Theme toggle with localStorage persistence
-- 🎨 **Modern UI** - Built with DaisyUI and Tailwind CSS
-- 📱 **Responsive design** - Works on desktop and mobile
-- 🔔 **Toast notifications** - User feedback for all actions
-- 🗄️ **SQLite database** - Local database with Drizzle ORM
+- CRUD
+- Pagination
+- Dark mode toggle because why not
+- Looks decent thanks to DaisyUI
 
-## 🚀 Quick Start
+## How to run this thing
 
-### Prerequisites
-
-- [Bun](https://bun.sh/) installed
-
-### Installation
-
-1. **Install dependencies:**
+You need Bun installed. Get it from [bun.sh](https://bun.sh/).
 
 ```bash
+# Install deps
 bun install
-```
 
-2. **Setup database:**
-
-```bash
+# Setup the database
 bun db:push
-```
 
-3. **Seed test data (optional):**
-
-```bash
+# Add some fake todos to test with (optional but recommended)
 bun db:seed
-```
 
-This creates 50 sample todos for testing pagination.
-
-4. **Start development server:**
-
-```bash
+# Run it
 bun dev
 ```
 
-Visit **http://localhost:6969** to see the app! 🎉
+Go to http://localhost:6969 and you're good.
 
-## 📚 API Endpoints
+## API Routes
 
-### Todos
+If you want to use just the API:
 
-- `GET /todos` - Get paginated todos
-  - Query params: `?page=1&limit=10`
-  - Response includes pagination metadata
-- `GET /todos/:id` - Get single todo by ID
-- `POST /todos` - Create new todo
-  - Body: `{ title: string, description: string }`
-- `PUT /todos/:id` - Update todo (partial updates supported)
-  - Body: `{ title?, description?, completed? }`
+**Todos:**
+- `GET /todos?page=1&limit=10` - Get todos (paginated)
+- `GET /todos/:id` - Get one todo
+- `POST /todos` - Create todo (needs `title` and `description`)
+- `PUT /todos/:id` - Update todo (any field works)
 - `DELETE /todos/:id` - Delete todo
 
-### Users (Demo endpoints)
+## What's in here
 
-- `GET /users` - List all users
-- `GET /users/:id` - Get user by ID
+- `src/index.tsx` - All the API routes
+- `src/db/` - Database stuff (Drizzle + SQLite)
+- `src/public/index.html` - The UI (plain HTML/JS, no fancy framework)
+- `scripts/seed-todos.ts` - Script to fill database with test data
 
-## 📁 Project Structure
+## Commands
 
+```bash
+bun dev          # Run with hot reload
+bun start        # Run without hot reload
+bun build        # Build it
+bun db:push      # Update database schema
+bun db:studio    # Open database GUI
+bun db:seed      # Add 50 test todos
 ```
-src/
-  ├── index.tsx          # Main API routes and server
-  ├── db/
-  │   ├── index.ts       # Database connection
-  │   └── schema.ts      # Database schema (todos table)
-  └── public/
-      └── index.html     # Frontend UI
-scripts/
-  └── seed-todos.ts      # Database seeding script
-```
 
-## 🛠️ Scripts
+## Tech used
 
-- `bun dev` - Start development server with hot reload
-- `bun start` - Start production server
-- `bun build` - Build TypeScript
-- `bun typecheck` - Run TypeScript type checking
-- `bun db:push` - Push database schema changes
-- `bun db:generate` - Generate SQL migrations
-- `bun db:studio` - Open Drizzle Studio (database GUI)
-- `bun db:seed` - Seed database with test todos
+- Bun - runs everything
+- ReactServe - JSX for APIs (kinda weird, kinda cool)
+- Drizzle - database ORM
+- SQLite - the database
+- DaisyUI - makes it look nice
+- No frontend framework - just vanilla JS
 
-## 🛠️ Tech Stack
-
-**Runtime:**
-- [Bun](https://bun.sh/) - Fast all-in-one JavaScript runtime
-
-**Backend:**
-- [ReactServe](https://www.npmjs.com/package/react-serve-js) - JSX-based API framework
-- [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
-- SQLite - Lightweight database
-- TypeScript - Type safety
-
-**Frontend:**
-- Vanilla JavaScript - No framework needed for this demo
-- [DaisyUI](https://daisyui.com/) - Tailwind CSS component library
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
-
-## 💡 Key Implementation Notes
-
-- **Pagination**: Backend returns paginated data with metadata (total, pages, hasNext, hasPrev)
-- **Partial updates**: PUT endpoint supports updating any combination of fields
-- **Theme persistence**: User's theme preference saved to localStorage
-- **No framework frontend**: Demonstrates clean vanilla JS implementation
-
-## 📝 License
-
-MIT
+That's all folks.
