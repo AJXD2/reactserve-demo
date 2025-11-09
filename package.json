@@ -28,6 +28,9 @@
   "license": "MIT",
   "dependencies": {
     "@libsql/client": "^0.15.15",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.5",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",
     "react": "^19.1.1",

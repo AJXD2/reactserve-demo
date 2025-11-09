@@ -3,9 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo App</title>
+    <title>Todo App - Manage Your Tasks</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: hsl(var(--b2));
+        }
+        ::-webkit-scrollbar-thumb {
+            background: hsl(var(--bc) / 0.2);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: hsl(var(--bc) / 0.3);
+        }
+    </style>
 </head>
 <body class="bg-base-200 min-h-screen">
     <!-- Header -->
@@ -13,7 +53,29 @@
         <div class="flex-1">
             <a class="btn btn-ghost text-xl">📝 Todo App</a>
         </div>
-        <div class="flex-none">
+        <div class="flex-none gap-2">
+            <!-- User info (shown when logged in) -->
+            <div id="userInfo" class="hidden">
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar placeholder">
+                        <div class="bg-neutral text-neutral-content rounded-full w-10">
+                            <span id="userInitial">U</span>
+                        </div>
+                    </div>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                        <li class="menu-title">
+                            <span id="userEmail">user@email.com</span>
+                        </li>
+                        <li><a onclick="handleLogout()">Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+            <!-- Auth buttons (shown when logged out) -->
+            <div id="authButtons" class="hidden gap-2">
+                <button onclick="loginModal.showModal()" class="btn btn-primary btn-sm">Login</button>
+                <button onclick="registerModal.showModal()" class="btn btn-outline btn-sm">Register</button>
+            </div>
+            <!-- Theme toggle -->
             <label class="swap swap-rotate">
                 <input type="checkbox" id="themeToggle" />
                 <svg class="swap-off fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5.64,17l-.71.71a1,1,0,0,0,0,1.41,1,1,0,0,0,1.41,0l.71-.71A1,1,0,0,0,5.64,17ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm7-7a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V4A1,1,0,0,0,12,5ZM5.64,7.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-.71-.71A1,1,0,0,0,4.93,6.34Zm12,.29a1,1,0,0,0,.7-.29l.71-.71a1,1,0,1,0-1.41-1.41L17,5.64a1,1,0,0,0,0,1.41A1,1,0,0,0,17.66,7.34ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-9,8a1,1,0,0,0-1,1v1a1,1,0,0,0,2,0V20A1,1,0,0,0,12,19ZM18.36,17A1,1,0,0,0,17,18.36l.71.71a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,6.5A5.5,5.5,0,1,0,17.5,12,5.51,5.51,0,0,0,12,6.5Zm0,9A3.5,3.5,0,1,1,15.5,12,3.5,3.5,0,0,1,12,15.5Z"/></svg>
@@ -22,88 +84,151 @@
         </div>
     </div>
 
-    <!-- Main Container -->
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <!-- Add Todo Form -->
-        <div class="card bg-base-100 shadow-xl mb-8">
-            <div class="card-body">
-                <h2 class="card-title text-2xl mb-4">Create New Todo</h2>
-                <form id="createForm" class="space-y-4">
-                    <div>
-                        <input 
-                            type="text" 
-                            id="newTitle" 
-                            placeholder="Title" 
-                            class="input input-bordered w-full"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <textarea 
-                            id="newDescription" 
-                            placeholder="Description" 
-                            class="textarea textarea-bordered w-full h-24"
-                            required
-                        ></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-full">
-                        Add Todo
-                    </button>
-                </form>
+    <!-- Hero Section -->
+    <div class="hero bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 py-8">
+        <div class="hero-content text-center">
+            <div class="max-w-2xl">
+                <h1 class="text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Manage Your Tasks
+                </h1>
+                <p class="py-4 text-lg opacity-80">Stay organized, stay productive. Track your daily tasks with style.</p>
             </div>
         </div>
+    </div>
 
-        <!-- Todos List -->
-        <div class="mb-4">
-            <h2 class="text-2xl font-bold mb-4">Your Todos</h2>
-            <div id="loadingState" class="flex justify-center py-8">
-                <span class="loading loading-spinner loading-lg"></span>
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Add Todo Form -->
+            <div class="lg:col-span-1">
+                <div class="card bg-gradient-to-br from-primary/5 to-secondary/5 shadow-2xl sticky top-4">
+                    <div class="card-body">
+                        <h2 class="card-title text-2xl mb-4 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            New Task
+                        </h2>
+                        <form id="createForm" class="space-y-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Title</span>
+                                    <span class="label-text-alt badge badge-ghost badge-sm">Required</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="newTitle" 
+                                    placeholder="What needs to be done?" 
+                                    class="input input-bordered input-primary w-full focus:input-primary"
+                                    required
+                                />
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Description</span>
+                                </label>
+                                <textarea 
+                                    id="newDescription" 
+                                    placeholder="Add more details..." 
+                                    class="textarea textarea-bordered textarea-primary w-full h-32 focus:textarea-primary"
+                                    required
+                                ></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block gap-2 shadow-lg">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
+                                <span>Create Task</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div id="emptyState" class="alert hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span>No todos yet. Create your first one above!</span>
+
+            <!-- Todos List -->
+            <div class="lg:col-span-2">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-bold flex items-center gap-3">
+                        <span class="badge badge-lg badge-primary">Your Tasks</span>
+                    </h2>
+                </div>
+                
+                <div id="loadingState" class="space-y-4">
+                    <div class="skeleton h-32 w-full rounded-box"></div>
+                    <div class="skeleton h-32 w-full rounded-box"></div>
+                    <div class="skeleton h-32 w-full rounded-box"></div>
+                </div>
+                
+                <div id="emptyState" class="hidden">
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body items-center text-center py-16">
+                            <div class="text-6xl mb-4">📝</div>
+                            <h3 class="card-title text-2xl mb-2">No tasks yet!</h3>
+                            <p class="text-base-content/60 mb-4">Create your first task to get started on your productivity journey.</p>
+                            <div class="badge badge-ghost badge-lg">Start by adding a task on the left →</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="todosList" class="space-y-4"></div>
+                
+                <!-- Pagination Controls -->
+                <div id="paginationContainer" class="flex justify-center mt-8"></div>
             </div>
-            <div id="todosList" class="space-y-4"></div>
-            
-            <!-- Pagination Controls -->
-            <div id="paginationContainer" class="flex justify-center mt-8"></div>
         </div>
     </div>
 
     <!-- Edit Modal -->
-    <dialog id="editModal" class="modal">
-        <div class="modal-box">
-            <h3 class="font-bold text-lg mb-4">Edit Todo</h3>
-            <form id="editForm" class="space-y-4">
+    <dialog id="editModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box max-w-2xl">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-primary/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                </div>
+                <h3 class="font-bold text-2xl">Edit Task</h3>
+            </div>
+            <form id="editForm" class="space-y-6">
                 <input type="hidden" id="editId" />
-                <div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base">Title</span>
+                    </label>
                     <input 
                         type="text" 
                         id="editTitle" 
-                        placeholder="Title" 
-                        class="input input-bordered w-full"
+                        placeholder="Task title" 
+                        class="input input-bordered input-primary w-full text-lg"
                         required
                     />
                 </div>
-                <div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-base">Description</span>
+                    </label>
                     <textarea 
                         id="editDescription" 
-                        placeholder="Description" 
-                        class="textarea textarea-bordered w-full h-24"
+                        placeholder="Task description" 
+                        class="textarea textarea-bordered textarea-primary w-full h-32 text-base"
                         required
                     ></textarea>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input 
-                        type="checkbox" 
-                        id="editCompleted" 
-                        class="checkbox checkbox-primary"
-                    />
-                    <label for="editCompleted" class="label-text">Mark as completed</label>
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-4 bg-base-200 p-4 rounded-lg">
+                        <input 
+                            type="checkbox" 
+                            id="editCompleted" 
+                            class="checkbox checkbox-success checkbox-lg"
+                        />
+                        <div>
+                            <span class="label-text font-semibold text-base">Mark as completed</span>
+                            <p class="label-text-alt text-xs opacity-60 mt-1">Check this if you've finished this task</p>
+                        </div>
+                    </label>
                 </div>
-                <div class="modal-action">
-                    <button type="button" class="btn" onclick="editModal.close()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                <div class="modal-action gap-2">
+                    <button type="button" class="btn btn-ghost" onclick="editModal.close()">Cancel</button>
+                    <button type="submit" class="btn btn-primary gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                        <span>Save Changes</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -112,8 +237,190 @@
         </form>
     </dialog>
 
+    <!-- Login Modal -->
+    <dialog id="loginModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box max-w-md">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-primary/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd" /></svg>
+                </div>
+                <h3 class="font-bold text-2xl">Welcome Back</h3>
+            </div>
+            <form id="loginForm" class="space-y-5">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Email Address</span>
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="email" 
+                            id="loginEmail" 
+                            placeholder="your@email.com" 
+                            class="input input-bordered input-primary w-full pl-10"
+                            required
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                    </div>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Password</span>
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="loginPassword" 
+                            placeholder="Enter your password" 
+                            class="input input-bordered input-primary w-full pl-10"
+                            required
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                    </div>
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-ghost" onclick="loginModal.close()">Cancel</button>
+                    <button type="submit" class="btn btn-primary gap-2 flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                        Sign In
+                    </button>
+                </div>
+            </form>
+            <div class="divider">OR</div>
+            <p class="text-center">
+                <span class="text-base-content/60">Don't have an account?</span>
+                <a class="link link-primary font-semibold ml-1" onclick="loginModal.close(); registerModal.showModal()">Create one</a>
+            </p>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Register Modal -->
+    <dialog id="registerModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box max-w-md">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="p-3 bg-primary/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
+                </div>
+                <h3 class="font-bold text-2xl">Create Account</h3>
+            </div>
+            <form id="registerForm" class="space-y-5">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Email Address</span>
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="email" 
+                            id="registerEmail" 
+                            placeholder="your@email.com" 
+                            class="input input-bordered input-primary w-full pl-10"
+                            required
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                    </div>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Password</span>
+                        <span class="label-text-alt badge badge-ghost badge-xs">Min 6 chars</span>
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="registerPassword" 
+                            placeholder="Choose a strong password" 
+                            class="input input-bordered input-primary w-full pl-10"
+                            minlength="6"
+                            required
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" /></svg>
+                    </div>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Confirm Password</span>
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="registerPasswordConfirm" 
+                            placeholder="Confirm your password" 
+                            class="input input-bordered input-primary w-full pl-10"
+                            minlength="6"
+                            required
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                    </div>
+                </div>
+                <div class="modal-action">
+                    <button type="button" class="btn btn-ghost" onclick="registerModal.close()">Cancel</button>
+                    <button type="submit" class="btn btn-primary gap-2 flex-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                        Create Account
+                    </button>
+                </div>
+            </form>
+            <div class="divider">OR</div>
+            <p class="text-center">
+                <span class="text-base-content/60">Already have an account?</span>
+                <a class="link link-primary font-semibold ml-1" onclick="registerModal.close(); loginModal.showModal()">Sign in</a>
+            </p>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Delete Confirmation Modal -->
+    <dialog id="deleteModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-3 bg-error/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-error" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl">Delete Task</h3>
+                    <p class="text-sm text-base-content/60">This action cannot be undone</p>
+                </div>
+            </div>
+            <p class="py-4">Are you sure you want to delete this task? All task data will be permanently removed.</p>
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost" onclick="deleteModal.close()">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-error gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    <span class="delete-btn-text">Delete Task</span>
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
     <!-- Toast Container -->
-    <div id="toastContainer" class="toast toast-top toast-end"></div>
+    <div id="toastContainer" class="toast toast-bottom toast-end"></div>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content mt-16">
+        <aside>
+            <div class="text-4xl mb-2">📝</div>
+            <p class="font-bold text-lg">Todo App</p>
+            <p class="text-base-content/60">Stay organized, stay productive.</p>
+            <p class="text-base-content/50 text-sm mt-2">Built with React-Serve, DaisyUI & Drizzle ORM</p>
+        </aside>
+        <nav>
+            <div class="grid grid-flow-col gap-4">
+                <a class="link link-hover">About</a>
+                <a class="link link-hover">Contact</a>
+                <a class="link link-hover">Privacy</a>
+            </div>
+        </nav>
+        <aside>
+            <p class="text-xs text-base-content/40">© 2025 Todo App. All rights reserved.</p>
+        </aside>
+    </footer>
 
     <script>
         // Theme toggle
@@ -125,33 +432,178 @@
             html.setAttribute('data-theme', e.target.checked ? 'dark' : 'light');
         });
 
-        // API base URL
-        const API_URL = '/todos';
+        // API base URLs
+        const API_URL = '/api/todos';
+        const AUTH_API_URL = '/api/auth';
         
         // Pagination state
         let currentPage = 1;
         const itemsPerPage = 10;
 
+        // Auth state management
+        let currentUser = null;
+        let sessionToken = null;
+        let pendingDeleteId = null;
+
+        // Load auth state from localStorage
+        function loadAuthState() {
+            sessionToken = localStorage.getItem('session_token');
+            const userJson = localStorage.getItem('current_user');
+            if (userJson) {
+                currentUser = JSON.parse(userJson);
+            }
+            updateAuthUI();
+        }
+
+        // Save auth state to localStorage
+        function saveAuthState(user, token) {
+            currentUser = user;
+            sessionToken = token;
+            localStorage.setItem('session_token', token);
+            localStorage.setItem('current_user', JSON.stringify(user));
+            updateAuthUI();
+        }
+
+        // Clear auth state
+        function clearAuthState() {
+            currentUser = null;
+            sessionToken = null;
+            localStorage.removeItem('session_token');
+            localStorage.removeItem('current_user');
+            updateAuthUI();
+        }
+
+        // Update UI based on auth state
+        function updateAuthUI() {
+            const userInfo = document.getElementById('userInfo');
+            const authButtons = document.getElementById('authButtons');
+            const userEmail = document.getElementById('userEmail');
+            const userInitial = document.getElementById('userInitial');
+
+            if (currentUser) {
+                // User is logged in
+                userInfo.classList.remove('hidden');
+                userInfo.classList.add('flex');
+                authButtons.classList.add('hidden');
+                userEmail.textContent = currentUser.email;
+                userInitial.textContent = currentUser.email.charAt(0).toUpperCase();
+            } else {
+                // User is logged out
+                userInfo.classList.add('hidden');
+                authButtons.classList.remove('hidden');
+                authButtons.classList.add('flex');
+                
+                // Show login required state
+                showLoginRequiredState();
+            }
+        }
+
+        // Show login required state
+        function showLoginRequiredState() {
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const todosList = document.getElementById('todosList');
+            
+            loadingState.classList.add('hidden');
+            todosList.innerHTML = '';
+            
+            emptyState.classList.remove('hidden');
+            emptyState.innerHTML = `
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body items-center text-center py-16">
+                        <div class="text-6xl mb-4">🔒</div>
+                        <h3 class="card-title text-2xl mb-2">Authentication Required</h3>
+                        <p class="text-base-content/60 mb-6">Please login to view and manage your tasks.</p>
+                        <div class="flex gap-3">
+                            <button onclick="loginModal.showModal()" class="btn btn-primary gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                Login
+                            </button>
+                            <button onclick="registerModal.showModal()" class="btn btn-outline gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
+                                Create Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Handle 401 responses
+        function handle401() {
+            clearAuthState();
+            showToast('Your session has expired. Please login again.', 'warning');
+            loginModal.showModal();
+        }
+
         // Toast notification
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
-            toast.className = `alert alert-${type} shadow-lg`;
-            toast.innerHTML = `<span>${message}</span>`;
+            const icons = {
+                success: '<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+                error: '<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
+                warning: '<svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>',
+                info: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+            };
+            toast.className = `alert alert-${type} shadow-2xl animate-[slideIn_0.3s_ease-out]`;
+            toast.innerHTML = `
+                ${icons[type] || icons.info}
+                <span class="font-medium">${message}</span>
+            `;
             document.getElementById('toastContainer').appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         // Fetch and render todos
         async function fetchTodos(page = currentPage) {
+            // Don't fetch if not logged in
+            if (!sessionToken) {
+                showLoginRequiredState();
+                return;
+            }
+
             try {
-                const response = await fetch(`${API_URL}?page=${page}&limit=${itemsPerPage}`);
+                const response = await fetch(`${API_URL}?page=${page}&limit=${itemsPerPage}`, {
+                    headers: {
+                        'Authorization': `Bearer ${sessionToken}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to fetch todos');
+                }
+
                 const result = await response.json();
                 currentPage = page;
                 renderTodos(result.data);
                 renderPagination(result.pagination);
             } catch (error) {
-                showToast('Failed to fetch todos', 'error');
+                showToast(error.message || 'Failed to fetch todos. Please try again.', 'error');
                 console.error('Error fetching todos:', error);
+                
+                // Show error state
+                const loadingState = document.getElementById('loadingState');
+                const todosList = document.getElementById('todosList');
+                loadingState.classList.add('hidden');
+                todosList.innerHTML = `
+                    <div class="alert alert-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div>
+                            <h3 class="font-bold">Error loading tasks</h3>
+                            <div class="text-xs">${error.message || 'Please try again'}</div>
+                        </div>
+                        <button onclick="fetchTodos()" class="btn btn-sm">Retry</button>
+                    </div>
+                `;
             }
         }
 
@@ -166,39 +618,85 @@
             if (todos.length === 0) {
                 emptyState.classList.remove('hidden');
                 todosList.innerHTML = '';
+                // Reset empty state to show "no todos" message (not "login required")
+                emptyState.innerHTML = `
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body items-center text-center py-16">
+                            <div class="text-6xl mb-4">📝</div>
+                            <h3 class="card-title text-2xl mb-2">No tasks yet!</h3>
+                            <p class="text-base-content/60 mb-4">Create your first task to get started on your productivity journey.</p>
+                            <div class="badge badge-ghost badge-lg">Start by adding a task on the left ←</div>
+                        </div>
+                    </div>
+                `;
                 return;
             }
             
             emptyState.classList.add('hidden');
             todosList.innerHTML = todos.map(todo => `
-                <div class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+                <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 border-l-4 ${todo.completed ? 'border-success' : 'border-primary'} hover:scale-[1.02]">
                     <div class="card-body">
-                        <div class="flex items-start gap-3">
-                            <input 
-                                type="checkbox" 
-                                ${todo.completed ? 'checked' : ''} 
-                                onchange="toggleComplete('${todo.id}', this.checked)"
-                                class="checkbox checkbox-primary mt-1"
-                            />
-                            <div class="flex-1">
-                                <h3 class="card-title ${todo.completed ? 'line-through opacity-60' : ''}">${escapeHtml(todo.title)}</h3>
-                                <p class="text-base-content/70 ${todo.completed ? 'line-through opacity-50' : ''}">${escapeHtml(todo.description)}</p>
+                        <div class="flex items-start gap-4">
+                            <div class="form-control">
+                                <label class="label cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        ${todo.completed ? 'checked' : ''} 
+                                        onchange="toggleComplete('${todo.id}', this.checked)"
+                                        class="checkbox checkbox-lg ${todo.completed ? 'checkbox-success' : 'checkbox-primary'}"
+                                    />
+                                </label>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h3 class="card-title text-xl ${todo.completed ? 'line-through opacity-60' : ''}">${escapeHtml(todo.title)}</h3>
+                                    ${todo.completed ? 
+                                        '<div class="badge badge-success gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Done</div>' : 
+                                        '<div class="badge badge-warning gap-1"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" /></svg>Active</div>'
+                                    }
+                                </div>
+                                <p class="text-base-content/70 mb-4 ${todo.completed ? 'line-through opacity-50' : ''} break-words">${escapeHtml(todo.description)}</p>
+                                <div class="flex items-center gap-2 text-xs text-base-content/50">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span>Created ${formatDate(todo.createdAt)}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-actions justify-end mt-4">
+                        <div class="card-actions justify-end mt-4 pt-4 border-t border-base-300">
                             <button onclick="openEditModal('${todo.id}', '${escapeHtml(todo.title)}', '${escapeHtml(todo.description)}', ${todo.completed})" 
-                                    class="btn btn-sm btn-outline btn-primary">
+                                    class="btn btn-sm btn-ghost gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
                                 Edit
                             </button>
                             <button onclick="deleteTodo('${todo.id}')" 
-                                    class="btn btn-sm btn-outline btn-error">
+                                    class="btn btn-sm btn-ghost text-error gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
                                 Delete
                             </button>
                         </div>
                     </div>
                 </div>
             `).join('');
+            
         }
+
+        // Format date helper
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        
 
         // Escape HTML to prevent XSS
         function escapeHtml(text) {
@@ -291,19 +789,25 @@
             try {
                 const response = await fetch(`${API_URL}/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
                     body: JSON.stringify({ completed })
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast(completed ? 'Todo completed! 🎉' : 'Todo reopened');
                     fetchTodos();
                 } else {
-                    showToast('Failed to update todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to update todo', 'error');
                     fetchTodos(); // Refresh to revert checkbox
                 }
             } catch (error) {
-                showToast('Failed to update todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error updating todo:', error);
                 fetchTodos(); // Refresh to revert checkbox
             }
@@ -313,26 +817,47 @@
         document.getElementById('createForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
+            
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Creating...';
+            
             const title = document.getElementById('newTitle').value;
             const description = document.getElementById('newDescription').value;
             
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
                     body: JSON.stringify({ title, description })
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast('Todo created successfully!');
-                    document.getElementById('createForm').reset();
+                    form.reset();
                     fetchTodos(1); // Go to first page after creating
                 } else {
-                    showToast('Failed to create todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to create todo', 'error');
                 }
             } catch (error) {
-                showToast('Failed to create todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error creating todo:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
             }
         });
 
@@ -349,6 +874,16 @@
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
+            
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Saving...';
+            
             const id = document.getElementById('editId').value;
             const title = document.getElementById('editTitle').value;
             const description = document.getElementById('editDescription').value;
@@ -357,41 +892,207 @@
             try {
                 const response = await fetch(`${API_URL}/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
                     body: JSON.stringify({ title, description, completed })
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast('Todo updated successfully!');
                     editModal.close();
                     fetchTodos();
                 } else {
-                    showToast('Failed to update todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to update todo', 'error');
                 }
             } catch (error) {
-                showToast('Failed to update todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error updating todo:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
             }
         });
 
-        // Delete todo
-        async function deleteTodo(id) {
-            if (!confirm('Are you sure you want to delete this todo?')) return;
+        // Delete todo - show confirmation modal
+        function deleteTodo(id) {
+            pendingDeleteId = id;
+            deleteModal.showModal();
+        }
+
+        // Confirm delete todo
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            if (!pendingDeleteId) return;
+            
+            const btn = this;
+            const btnText = btn.querySelector('.delete-btn-text');
+            const originalText = btnText.textContent;
+            
+            // Disable button during deletion
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btnText.textContent = 'Deleting...';
             
             try {
-                const response = await fetch(`${API_URL}/${id}`, {
-                    method: 'DELETE'
+                const response = await fetch(`${API_URL}/${pendingDeleteId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${sessionToken}` }
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast('Todo deleted successfully!');
+                    deleteModal.close();
                     fetchTodos();
                 } else {
-                    showToast('Failed to delete todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to delete todo', 'error');
                 }
             } catch (error) {
-                showToast('Failed to delete todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error deleting todo:', error);
+            } finally {
+                // Re-enable button
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btnText.textContent = originalText;
+                pendingDeleteId = null;
+            }
+        });
+
+        // Login handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
+            
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Signing In...';
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                const response = await fetch(`${AUTH_API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    saveAuthState(data.user, data.session.token);
+                    showToast('Login successful! Welcome back! 👋');
+                    loginModal.close();
+                    form.reset();
+                    fetchTodos(1);
+                } else {
+                    showToast(data.error || 'Login failed. Please check your credentials.', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please check your connection.', 'error');
+                console.error('Error logging in:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
+            }
+        });
+
+        // Register handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
+            
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+            
+            // Validate passwords match
+            if (password !== passwordConfirm) {
+                showToast('Passwords do not match!', 'error');
+                return;
+            }
+            
+            // Validate password length
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters long!', 'error');
+                return;
+            }
+            
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Creating...';
+            
+            try {
+                const response = await fetch(`${AUTH_API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    saveAuthState(data.user, data.session.token);
+                    showToast('Account created successfully! Welcome! 🎉');
+                    registerModal.close();
+                    form.reset();
+                    fetchTodos(1);
+                } else {
+                    showToast(data.error || 'Registration failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                showToast('Network error. Please check your connection.', 'error');
+                console.error('Error registering:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
+            }
+        });
+
+        // Logout handler
+        async function handleLogout() {
+            try {
+                if (sessionToken) {
+                    await fetch(`${AUTH_API_URL}/logout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+                        body: JSON.stringify({ token: sessionToken })
+                    });
+                }
+                
+                clearAuthState();
+                showToast('Logged out successfully!');
+            } catch (error) {
+                // Even if the API call fails, clear local state
+                clearAuthState();
+                showToast('Logged out successfully!');
+                console.error('Error logging out:', error);
             }
         }
 
@@ -401,6 +1102,9 @@
             html.setAttribute('data-theme', savedTheme);
             themeToggle.checked = savedTheme === 'dark';
         }
+        
+        // Load auth state and fetch todos
+        loadAuthState();
         fetchTodos();
     </script>
 </body>
