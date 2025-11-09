@@ -134,9 +134,9 @@
                                     required
                                 ></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-block gap-2 shadow-lg" >
+                            <button type="submit" class="btn btn-primary btn-block gap-2 shadow-lg">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" /></svg>
-                                Create Task
+                                <span>Create Task</span>
                             </button>
                         </form>
                     </div>
@@ -227,7 +227,7 @@
                     <button type="button" class="btn btn-ghost" onclick="editModal.close()">Cancel</button>
                     <button type="submit" class="btn btn-primary gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-                        Save Changes
+                        <span>Save Changes</span>
                     </button>
                 </div>
             </form>
@@ -373,6 +373,32 @@
         </form>
     </dialog>
 
+    <!-- Delete Confirmation Modal -->
+    <dialog id="deleteModal" class="modal modal-bottom sm:modal-middle">
+        <div class="modal-box">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="p-3 bg-error/10 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-error" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xl">Delete Task</h3>
+                    <p class="text-sm text-base-content/60">This action cannot be undone</p>
+                </div>
+            </div>
+            <p class="py-4">Are you sure you want to delete this task? All task data will be permanently removed.</p>
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost" onclick="deleteModal.close()">Cancel</button>
+                <button type="button" id="confirmDeleteBtn" class="btn btn-error gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    <span class="delete-btn-text">Delete Task</span>
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
     <!-- Toast Container -->
     <div id="toastContainer" class="toast toast-bottom toast-end"></div>
 
@@ -417,6 +443,7 @@
         // Auth state management
         let currentUser = null;
         let sessionToken = null;
+        let pendingDeleteId = null;
 
         // Load auth state from localStorage
         function loadAuthState() {
@@ -465,7 +492,48 @@
                 userInfo.classList.add('hidden');
                 authButtons.classList.remove('hidden');
                 authButtons.classList.add('flex');
+                
+                // Show login required state
+                showLoginRequiredState();
             }
+        }
+
+        // Show login required state
+        function showLoginRequiredState() {
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const todosList = document.getElementById('todosList');
+            
+            loadingState.classList.add('hidden');
+            todosList.innerHTML = '';
+            
+            emptyState.classList.remove('hidden');
+            emptyState.innerHTML = `
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body items-center text-center py-16">
+                        <div class="text-6xl mb-4">🔒</div>
+                        <h3 class="card-title text-2xl mb-2">Authentication Required</h3>
+                        <p class="text-base-content/60 mb-6">Please login to view and manage your tasks.</p>
+                        <div class="flex gap-3">
+                            <button onclick="loginModal.showModal()" class="btn btn-primary gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                Login
+                            </button>
+                            <button onclick="registerModal.showModal()" class="btn btn-outline gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" /></svg>
+                                Create Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Handle 401 responses
+        function handle401() {
+            clearAuthState();
+            showToast('Your session has expired. Please login again.', 'warning');
+            loginModal.showModal();
         }
 
         // Toast notification
@@ -491,19 +559,51 @@
 
         // Fetch and render todos
         async function fetchTodos(page = currentPage) {
+            // Don't fetch if not logged in
+            if (!sessionToken) {
+                showLoginRequiredState();
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}?page=${page}&limit=${itemsPerPage}`, {
                     headers: {
                         'Authorization': `Bearer ${sessionToken}`
                     }
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to fetch todos');
+                }
+
                 const result = await response.json();
                 currentPage = page;
                 renderTodos(result.data);
                 renderPagination(result.pagination);
             } catch (error) {
-                showToast('Failed to fetch todos', 'error');
+                showToast(error.message || 'Failed to fetch todos. Please try again.', 'error');
                 console.error('Error fetching todos:', error);
+                
+                // Show error state
+                const loadingState = document.getElementById('loadingState');
+                const todosList = document.getElementById('todosList');
+                loadingState.classList.add('hidden');
+                todosList.innerHTML = `
+                    <div class="alert alert-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <div>
+                            <h3 class="font-bold">Error loading tasks</h3>
+                            <div class="text-xs">${error.message || 'Please try again'}</div>
+                        </div>
+                        <button onclick="fetchTodos()" class="btn btn-sm">Retry</button>
+                    </div>
+                `;
             }
         }
 
@@ -518,6 +618,17 @@
             if (todos.length === 0) {
                 emptyState.classList.remove('hidden');
                 todosList.innerHTML = '';
+                // Reset empty state to show "no todos" message (not "login required")
+                emptyState.innerHTML = `
+                    <div class="card bg-base-100 shadow-xl">
+                        <div class="card-body items-center text-center py-16">
+                            <div class="text-6xl mb-4">📝</div>
+                            <h3 class="card-title text-2xl mb-2">No tasks yet!</h3>
+                            <p class="text-base-content/60 mb-4">Create your first task to get started on your productivity journey.</p>
+                            <div class="badge badge-ghost badge-lg">Start by adding a task on the left ←</div>
+                        </div>
+                    </div>
+                `;
                 return;
             }
             
@@ -681,16 +792,22 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
                     body: JSON.stringify({ completed })
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast(completed ? 'Todo completed! 🎉' : 'Todo reopened');
                     fetchTodos();
                 } else {
-                    showToast('Failed to update todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to update todo', 'error');
                     fetchTodos(); // Refresh to revert checkbox
                 }
             } catch (error) {
-                showToast('Failed to update todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error updating todo:', error);
                 fetchTodos(); // Refresh to revert checkbox
             }
@@ -699,6 +816,16 @@
         // Create todo
         document.getElementById('createForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
+            
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Creating...';
             
             const title = document.getElementById('newTitle').value;
             const description = document.getElementById('newDescription').value;
@@ -709,17 +836,28 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
                     body: JSON.stringify({ title, description })
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast('Todo created successfully!');
-                    document.getElementById('createForm').reset();
+                    form.reset();
                     fetchTodos(1); // Go to first page after creating
                 } else {
-                    showToast('Failed to create todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to create todo', 'error');
                 }
             } catch (error) {
-                showToast('Failed to create todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error creating todo:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
             }
         });
 
@@ -736,6 +874,16 @@
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
+            
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Saving...';
+            
             const id = document.getElementById('editId').value;
             const title = document.getElementById('editTitle').value;
             const description = document.getElementById('editDescription').value;
@@ -747,45 +895,94 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
                     body: JSON.stringify({ title, description, completed })
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast('Todo updated successfully!');
                     editModal.close();
                     fetchTodos();
                 } else {
-                    showToast('Failed to update todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to update todo', 'error');
                 }
             } catch (error) {
-                showToast('Failed to update todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error updating todo:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
             }
         });
 
-        // Delete todo
-        async function deleteTodo(id) {
-            if (!confirm('Are you sure you want to delete this todo?')) return;
+        // Delete todo - show confirmation modal
+        function deleteTodo(id) {
+            pendingDeleteId = id;
+            deleteModal.showModal();
+        }
+
+        // Confirm delete todo
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            if (!pendingDeleteId) return;
+            
+            const btn = this;
+            const btnText = btn.querySelector('.delete-btn-text');
+            const originalText = btnText.textContent;
+            
+            // Disable button during deletion
+            btn.disabled = true;
+            btn.classList.add('loading');
+            btnText.textContent = 'Deleting...';
             
             try {
-                const response = await fetch(`${API_URL}/${id}`, {
+                const response = await fetch(`${API_URL}/${pendingDeleteId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${sessionToken}` }
                 });
+
+                if (response.status === 401) {
+                    handle401();
+                    return;
+                }
                 
                 if (response.ok) {
                     showToast('Todo deleted successfully!');
+                    deleteModal.close();
                     fetchTodos();
                 } else {
-                    showToast('Failed to delete todo', 'error');
+                    const error = await response.json();
+                    showToast(error.error || 'Failed to delete todo', 'error');
                 }
             } catch (error) {
-                showToast('Failed to delete todo', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error deleting todo:', error);
+            } finally {
+                // Re-enable button
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btnText.textContent = originalText;
+                pendingDeleteId = null;
             }
-        }
+        });
 
         // Login handler
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
+            
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Signing In...';
             
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
@@ -793,7 +990,7 @@
             try {
                 const response = await fetch(`${AUTH_API_URL}/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionToken}` },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
                 });
                 
@@ -803,20 +1000,30 @@
                     saveAuthState(data.user, data.session.token);
                     showToast('Login successful! Welcome back! 👋');
                     loginModal.close();
-                    document.getElementById('loginForm').reset();
+                    form.reset();
                     fetchTodos(1);
                 } else {
                     showToast(data.error || 'Login failed. Please check your credentials.', 'error');
                 }
             } catch (error) {
-                showToast('Login failed. Please try again.', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error logging in:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
             }
         });
 
         // Register handler
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('span') || submitBtn.childNodes[submitBtn.childNodes.length - 1];
+            const originalText = btnText.textContent;
             
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
@@ -834,6 +1041,11 @@
                 return;
             }
             
+            // Disable form during submission
+            submitBtn.disabled = true;
+            submitBtn.classList.add('loading');
+            btnText.textContent = 'Creating...';
+            
             try {
                 const response = await fetch(`${AUTH_API_URL}/register`, {
                     method: 'POST',
@@ -847,21 +1059,24 @@
                     saveAuthState(data.user, data.session.token);
                     showToast('Account created successfully! Welcome! 🎉');
                     registerModal.close();
-                    document.getElementById('registerForm').reset();
+                    form.reset();
                     fetchTodos(1);
                 } else {
                     showToast(data.error || 'Registration failed. Please try again.', 'error');
                 }
             } catch (error) {
-                showToast('Registration failed. Please try again.', 'error');
+                showToast('Network error. Please check your connection.', 'error');
                 console.error('Error registering:', error);
+            } finally {
+                // Re-enable form
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+                btnText.textContent = originalText;
             }
         });
 
         // Logout handler
         async function handleLogout() {
-            if (!confirm('Are you sure you want to logout?')) return;
-            
             try {
                 if (sessionToken) {
                     await fetch(`${AUTH_API_URL}/logout`, {
@@ -873,7 +1088,6 @@
                 
                 clearAuthState();
                 showToast('Logged out successfully!');
-                fetchTodos(1);
             } catch (error) {
                 // Even if the API call fails, clear local state
                 clearAuthState();
