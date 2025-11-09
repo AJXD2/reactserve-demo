@@ -90,7 +90,6 @@ export async function authMiddleware(req: Request, next: NextFunction) {
       const token =
         req.cookies?.[SESSION_COOKIE_NAME] ||
         req.headers.authorization?.replace("Bearer ", "");
-      console.log(`[authMiddleware] token "${token}"`);
       if (!token) {
         return <Response status={401} json={{ error: "Unauthorized" }} />;
       }
